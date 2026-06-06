@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#3b1c0c">
+<meta name="description" content="Eattie — Sistem Manajemen Bakery Internal">
+<title>🎂 Eattie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+
+<!-- ══ URL PROTECTION GATE ══ -->
+<div id="url-gate" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#3b1c0c,#6b3a2a,#c9873a);padding:24px">
+  <div style="background:#fff;border-radius:24px;padding:32px 24px;width:100%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center">
+    <div style="font-size:52px;margin-bottom:8px">🎂</div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;color:#6b3a2a;margin-bottom:4px">Eattie</div>
+    <div style="font-size:12px;color:#7a5c48;margin-bottom:24px">Sistem Internal Bakery</div>
+    <div style="margin-bottom:12px;text-align:left">
+      <label style="font-size:11px;font-weight:600;color:#7a5c48;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Kode Akses</label>
+      <input type="password" id="gate-input" placeholder="Masukkan kode akses"
+        style="width:100%;padding:11px 14px;border:1.5px solid #f5e8d6;border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:#fdf6ee;-webkit-appearance:none"
+        onkeydown="if(event.key==='Enter')checkGate()">
+    </div>
+    <div id="gate-err" style="font-size:12px;color:#c62828;min-height:18px;margin-bottom:12px"></div>
+    <button onclick="checkGate()"
+      style="width:100%;padding:12px;background:linear-gradient(135deg,#6b3a2a,#8b4a35);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">
+      🔐 Masuk
+    </button>
+    <div style="font-size:11px;color:#7a5c48;margin-top:16px">Hubungi owner untuk kode akses</div>
+  </div>
+</div>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen" class="login-wrap" style="display:none">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="emoji">🎂</div>
+      <div class="brand">Eattie Bakery</div>
+      <div class="sub">Powered by Supabase</div>
+    </div>
+    <div class="fg">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="email@bakery.com" autocomplete="email">
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="err" id="login-err"></div>
+    <button class="btn bp" id="login-btn" onclick="doLogin()">🔐 Masuk</button>
+    <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--tm)">
+      Belum punya akun?
+      <a href="#" onclick="showRegister();return false" style="color:var(--go);font-weight:600">Daftar</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REGISTER ══ -->
+<div id="register-screen" class="login-wrap" style="display:none">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="emoji">🎂</div>
+      <div class="brand">Daftar Akun</div>
+    </div>
+    <div class="fg"><label>Nama Lengkap</label><input type="text" id="reg-nama" placeholder="Nama Anda"></div>
+    <div class="fg"><label>Email</label><input type="email" id="reg-email" placeholder="email@bakery.com"></div>
+    <div class="fg"><label>Password</label><input type="password" id="reg-pass" placeholder="Min. 6 karakter"></div>
+    <div class="fg">
+      <label>Role</label>
+      <select id="reg-role">
+        <option value="owner">👑 Owner</option>
+        <option value="baker">👨‍🍳 Baker</option>
+        <option value="kasir">💁 Kasir</option>
+      </select>
+    </div>
+    <div class="err" id="reg-err"></div>
+    <button class="btn bp" onclick="doRegister()">✅ Daftar</button>
+    <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--tm)">
+      Sudah punya akun?
+      <a href="#" onclick="showLogin();return false" style="color:var(--go);font-weight:600">Masuk</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app-screen" style="display:none">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🎂 Eattie</div>
+      <div class="topbar-sub" id="tb-date"></div>
+    </div>
+    <div class="topbar-right">
+      <span class="sync-dot" id="sync-dot" title="Status koneksi"></span>
+      <span class="role-badge" id="tb-role"></span>
+      <button class="logout-btn" onclick="doLogout()">⏻ Keluar</button>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav" id="main-nav">
+    <button class="nav-btn active"     onclick="showPage('dashboard',this)">📊 Dashboard</button>
+    <button class="nav-btn"            onclick="showPage('penjualan',this)">💰 Penjualan</button>
+    <button class="nav-btn owner-only" onclick="showPage('pembelian',this)">🛒 Pembelian</button>
+    <button class="nav-btn baker-only" onclick="showPage('produksi',this)">🏭 Produksi</button>
+    <button class="nav-btn owner-only" onclick="showPage('stok-bahan',this)">🌾 Stok Bahan</button>
+    <button class="nav-btn"            onclick="showPage('stok-produk',this)">🍞 Stok Produk</button>
+    <button class="nav-btn owner-only" onclick="showPage('resep',this)">📋 Resep</button>
+    <button class="nav-btn owner-only" onclick="showPage('master',this)">⚙️ Master</button>
+    <button class="nav-btn owner-only" onclick="showPage('laporan',this)">📈 Laporan</button>
+    <button class="nav-btn owner-only" onclick="showPage('audit',this)">📒 Audit</button>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div id="dash-alerts"></div>
+      <div class="kpi-grid" id="dash-kpi"></div>
+      <div class="card">
+        <div class="card-title">💰 Penjualan Terbaru</div>
+        <div class="tw">
+          <table id="t-dash-jual">
+            <thead><tr><th>Produk</th><th>Qty</th><th>Total</th><th>Channel</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">🌾 Bahan Kritis</div><div id="dash-bahan-kritis"></div></div>
+      <div class="card"><div class="card-title">🍞 Stok Produk Jadi</div><div id="dash-stok-produk"></div></div>
+    </div>
+
+    <!-- PENJUALAN -->
+    <div class="page" id="page-penjualan">
+      <div class="card">
+        <div class="card-title">➕ Transaksi Penjualan</div>
+        <div class="fg"><label>Produk</label><select id="jual-prd" onchange="hitungJual()"></select></div>
+        <div class="fr">
+          <div class="fg"><label>Qty</label><input type="number" id="jual-qty" min="1" value="1" oninput="hitungJual()"></div>
+          <div class="fg"><label>Diskon (%)</label><input type="number" id="jual-dis" min="0" max="100" value="0" oninput="hitungJual()"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Channel</label>
+            <select id="jual-ch"><option>Toko</option><option>Online</option><option>Pre-order</option></select>
+          </div>
+          <div class="fg"><label>Kasir</label><input type="text" id="jual-kasir" placeholder="Nama"></div>
+        </div>
+        <div class="lbox" style="margin-bottom:12px">
+          <div class="lr"><span>Stok Tersedia</span><span id="j-stok" style="font-weight:600">-</span></div>
+          <div class="lr"><span>Harga Satuan</span><span id="j-harga">Rp 0</span></div>
+          <div class="lr"><span>Diskon</span><span id="j-dis" style="color:var(--rd)">- Rp 0</span></div>
+          <div class="lr tot"><span>Total</span><span id="j-tot">Rp 0</span></div>
+        </div>
+        <button class="btn bp" id="btn-simpan-jual" onclick="tambahJual()">✅ Simpan Transaksi</button>
+      </div>
+      <div class="card">
+        <div class="sh"><h3>📋 Riwayat</h3><span id="lbl-tot-jual" style="font-size:12px;color:var(--tm)"></span></div>
+        <div class="filter-bar">
+          <input type="date" id="jual-f-dari"   onchange="loadPenjualan()">
+          <input type="date" id="jual-f-sampai" onchange="loadPenjualan()">
+          <select id="jual-f-ch" onchange="loadPenjualan()">
+            <option value="">Semua</option><option>Toko</option><option>Online</option><option>Pre-order</option>
+          </select>
+          <button class="btn bsm" style="background:var(--cd);color:var(--br)" onclick="resetFilterJual()">Reset</button>
+        </div>
+        <div class="tw">
+          <table id="t-jual">
+            <thead><tr><th>Tgl</th><th>Produk</th><th>Qty</th><th>Total</th><th>Ch</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="pgn" id="jual-pgn"></div>
+      </div>
+    </div>
+
+    <!-- PEMBELIAN -->
+    <div class="page" id="page-pembelian">
+      <div class="card">
+        <div class="card-title">➕ Pembelian Bahan</div>
+        <div class="fg"><label>Bahan</label><select id="beli-bhn"></select></div>
+        <div class="fr">
+          <div class="fg"><label>Qty</label><input type="number" id="beli-qty" min="0.01" step="0.01" value="1"></div>
+          <div class="fg"><label>Harga/Sat (Rp)</label><input type="number" id="beli-hrg" min="0" value="0"></div>
+        </div>
+        <div class="fg"><label>Supplier</label><input type="text" id="beli-sup" placeholder="Nama supplier"></div>
+        <button class="btn bp" onclick="tambahBeli()">✅ Simpan Pembelian</button>
+      </div>
+      <div class="card">
+        <div class="sh"><h3>📋 Riwayat</h3><span id="lbl-tot-beli" style="font-size:12px;color:var(--tm)"></span></div>
+        <div class="tw">
+          <table id="t-beli">
+            <thead><tr><th>Tgl</th><th>Bahan</th><th>Qty</th><th>Total</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUKSI -->
+    <div class="page" id="page-produksi">
+      <div class="card">
+        <div class="card-title">🏭 Catat Produksi</div>
+        <div class="fg"><label>Produk</label><select id="prod-prd" onchange="cekBOM()"></select></div>
+        <div class="fr">
+          <div class="fg"><label>Jumlah</label><input type="number" id="prod-qty" min="1" value="1" oninput="cekBOM()"></div>
+          <div class="fg"><label>Shift</label>
+            <select id="prod-shift"><option>Pagi</option><option>Siang</option><option>Sore</option><option>Malam</option></select>
+          </div>
+        </div>
+        <div id="bom-preview" style="margin-bottom:12px"></div>
+        <div class="fr">
+          <div class="fg"><label>Biaya Bahan (Rp)</label><input type="number" id="prod-bhn" min="0" value="0"></div>
+          <div class="fg"><label>Biaya Tenaga (Rp)</label><input type="number" id="prod-tng" min="0" value="0"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Overhead (Rp)</label><input type="number" id="prod-ovh" min="0" value="0"></div>
+          <div class="fg"><label>Petugas</label><input type="text" id="prod-pet" placeholder="Nama baker"></div>
+        </div>
+        <div class="info-box" id="prod-info">🌾 Stok bahan dikurangi otomatis sesuai BOM saat simpan.</div>
+        <button class="btn bp" onclick="tambahProduksi()">✅ Simpan Produksi</button>
+      </div>
+      <div class="card">
+        <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--br);margin-bottom:12px">📋 Log Produksi</h3>
+        <div class="tw">
+          <table id="t-prod">
+            <thead><tr><th>Tgl</th><th>Produk</th><th>Qty</th><th>HPP</th><th>Shift</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- STOK BAHAN -->
+    <div class="page" id="page-stok-bahan">
+      <div class="card"><div class="card-title">🌾 Kartu Stok Bahan Baku</div><div id="stok-bahan-list"></div></div>
+      <div class="card">
+        <div class="card-title">✏️ Tambah / Edit Bahan</div>
+        <input type="hidden" id="sb-id">
+        <div class="fg"><label>Nama Bahan</label><input type="text" id="sb-nama" placeholder="Contoh: Tepung Terigu"></div>
+        <div class="fr">
+          <div class="fg"><label>Satuan</label>
+            <select id="sb-sat"><option>Kg</option><option>Liter</option><option>Gram</option><option>Botol</option><option>Tray</option><option>Pcs</option></select>
+          </div>
+          <div class="fg"><label>Stok Awal</label><input type="number" id="sb-awal" min="0" step="0.01" value="0"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Stok Minimum</label><input type="number" id="sb-min" min="0" step="0.01" value="0"></div>
+          <div class="fg"><label>Harga/Satuan (Rp)</label><input type="number" id="sb-hrg" min="0" value="0"></div>
+        </div>
+        <div class="brow">
+          <button class="btn bp" onclick="simpanBahan()">💾 Simpan</button>
+          <button class="btn br2 bsm" style="width:auto;padding:11px 16px" onclick="resetFormBahan()">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STOK PRODUK -->
+    <div class="page" id="page-stok-produk">
+      <div class="card"><div class="card-title">🍞 Stok Produk Jadi</div><div id="stok-produk-list"></div></div>
+    </div>
+
+    <!-- RESEP / BOM -->
+    <div class="page" id="page-resep">
+      <div class="card">
+        <div class="card-title">📋 Resep / Bill of Material</div>
+        <div class="fg"><label>Pilih Produk</label><select id="bom-prd" onchange="loadBOM()"></select></div>
+        <div class="divider"></div>
+        <div class="sec-label">Bahan per 1 unit produk</div>
+        <div id="bom-rows"></div>
+        <button class="btn" style="background:var(--cd);color:var(--br);margin-bottom:12px" onclick="addBOMRow()">+ Tambah Bahan</button>
+        <button class="btn bp" onclick="simpanBOM()">💾 Simpan Resep</button>
+      </div>
+      <div class="card"><div class="card-title">📖 Semua Resep</div><div id="bom-summary"></div></div>
+    </div>
+
+    <!-- MASTER -->
+    <div class="page" id="page-master">
+      <div class="card">
+        <div class="card-title">🍞 Master Produk</div>
+        <input type="hidden" id="mp-id">
+        <div class="fg"><label>Nama Produk</label><input type="text" id="mp-nama" placeholder="Contoh: Croissant Butter"></div>
+        <div class="fr">
+          <div class="fg"><label>Kategori</label>
+            <select id="mp-kat"><option>Roti</option><option>Pastry</option><option>Kue</option><option>Donat</option><option>Muffin</option><option>Lainnya</option></select>
+          </div>
+          <div class="fg"><label>Satuan</label>
+            <select id="mp-sat"><option>Pcs</option><option>Loaf</option><option>Kotak</option><option>Slice</option><option>Buah</option></select>
+          </div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>HPP/Unit (Rp)</label><input type="number" id="mp-hpp" min="0" value="0"></div>
+          <div class="fg"><label>Harga Jual (Rp)</label><input type="number" id="mp-hrg" min="0" value="0"></div>
+        </div>
+        <div class="fg"><label>Stok Minimum</label><input type="number" id="mp-min" min="0" value="0"></div>
+        <div class="brow">
+          <button class="btn bp" onclick="simpanProduk()">💾 Simpan</button>
+          <button class="btn br2 bsm" style="width:auto;padding:11px 16px" onclick="resetFormProduk()">✕</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="sh"><h3>📋 Daftar Produk</h3></div>
+        <div class="tw">
+          <table id="t-produk">
+            <thead><tr><th>Produk</th><th>HPP</th><th>Jual</th><th>Margin</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔑 Kelola User</div>
+        <div class="tw">
+          <table id="t-users">
+            <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAPORAN -->
+    <div class="page" id="page-laporan">
+      <div class="card">
+        <div class="card-title">📈 Laporan Laba Rugi</div>
+        <div class="filter-bar" style="margin-bottom:14px">
+          <input type="date" id="lap-dari"   onchange="renderLaporan()">
+          <input type="date" id="lap-sampai" onchange="renderLaporan()">
+          <button class="btn bsm" style="background:var(--cd);color:var(--br)"
+            onclick="document.getElementById('lap-dari').value='';document.getElementById('lap-sampai').value='';renderLaporan()">Reset</button>
+        </div>
+        <div id="lap-lr"></div>
+      </div>
+      <div class="card"><div class="card-title">📊 Per Channel</div><div id="lap-ch"></div></div>
+      <div class="card"><div class="card-title">🏆 Terlaris</div><div id="lap-top"></div></div>
+      <div class="card"><div class="card-title">🌾 Nilai Stok</div><div id="lap-stok"></div></div>
+      <button class="btn bg2" onclick="window.print()" style="margin-bottom:16px">🖨️ Print / PDF</button>
+    </div>
+
+    <!-- AUDIT LOG -->
+    <div class="page" id="page-audit">
+      <div class="card">
+        <div class="card-title">📒 Audit Log <span id="audit-count" style="font-size:12px;font-weight:400;color:var(--tm)"></span></div>
+        <div class="audit-filter-bar">
+          <input type="date"   id="audit-f-dari"   placeholder="Dari"    onchange="loadAuditLog()">
+          <input type="date"   id="audit-f-sampai" placeholder="Sampai"  onchange="loadAuditLog()">
+          <input type="text"   id="audit-f-user"   placeholder="Email user" oninput="loadAuditLog()">
+          <select id="audit-f-tipe" onchange="loadAuditLog()">
+            <option value="">Semua Aksi</option>
+            <option value="TAMBAH_JUAL">💰 Penjualan</option>
+            <option value="HAPUS_JUAL">🗑 Hapus Jual</option>
+            <option value="TAMBAH_BELI">🛒 Pembelian</option>
+            <option value="TAMBAH_PRODUKSI">🏭 Produksi</option>
+            <option value="EDIT_PRODUKSI">✏️ Edit Produksi</option>
+            <option value="HAPUS_PRODUKSI">🗑 Hapus Produksi</option>
+            <option value="TAMBAH_BAHAN">🌾 Tambah Bahan</option>
+            <option value="EDIT_BAHAN">✏️ Edit Bahan</option>
+          </select>
+          <button class="btn bsm" style="background:var(--cd);color:var(--br)" onclick="resetAuditFilters()">Reset</button>
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>Waktu</th><th>Aksi / Detail</th><th>Ref ID</th><th>User</th><th>Role</th></tr>
+            </thead>
+            <tbody id="audit-table-body"></tbody>
+          </table>
+        </div>
+        <div class="pgn" id="audit-pgn"></div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- EDIT PRODUKSI MODAL -->
+<div class="modal" id="modal-edit-prod">
+  <div class="modal-box">
+    <div class="mt2">✏️ Edit Produksi <button class="mc" onclick="closeModal('modal-edit-prod')">×</button></div>
+    <input type="hidden" id="ep-id">
+    <div class="fg"><label>Qty Produksi</label><input type="number" id="ep-qty" min="1" oninput="hitungHPPEdit()"></div>
+    <div class="fr">
+      <div class="fg">
+        <label>Biaya Bahan (Rp)</label>
+        <input type="number" id="ep-bhn" min="0" oninput="hitungHPPEdit()">
+        <div style="font-size:10px;color:var(--tm);margin-top:2px">Edit manual atau klik Recalc</div>
+      </div>
+      <div class="fg"><label>Biaya Tenaga (Rp)</label><input type="number" id="ep-tng" min="0" oninput="hitungHPPEdit()"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Overhead (Rp)</label><input type="number" id="ep-ovh" min="0" oninput="hitungHPPEdit()"></div>
+      <div class="fg"><label>Petugas</label><input type="text" id="ep-pet"></div>
+    </div>
+    <div class="lbox" style="margin-bottom:8px">
+      <div class="lr"><span style="font-size:12px">Est. BOM</span><span id="ep-bhn-bom" style="font-size:12px;color:var(--tm)">-</span></div>
+      <div class="lr tot"><span>Total HPP</span><span id="ep-hpp-preview">Rp 0</span></div>
+    </div>
+    <button class="btn" style="background:var(--gnl);color:var(--gn);margin-bottom:8px;font-size:12px;padding:8px"
+      onclick="recalcBOM()">🔄 Recalc dari BOM</button>
+    <div style="display:flex;gap:10px">
+      <button class="btn bp" onclick="saveEditProduksi()">💾 Simpan</button>
+      <button class="btn" style="background:var(--cd);color:var(--br);margin-top:0" onclick="closeModal('modal-edit-prod')">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTO LOGOUT MODAL -->
+<div id="timeout-modal">
+  <div id="timeout-box">
+    <div style="font-size:40px;margin-bottom:10px">⏰</div>
+    <div style="font-weight:700;font-size:16px;color:#2c1505;margin-bottom:8px">Sesi Akan Berakhir</div>
+    <div style="font-size:13px;color:#7a5c48;margin-bottom:16px">
+      Tidak ada aktivitas 15 menit.<br>
+      Logout dalam <b id="countdown-num">30</b> detik.
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="extendSession()"
+        style="flex:1;padding:11px;background:linear-gradient(135deg,#6b3a2a,#8b4a35);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">
+        ✅ Lanjutkan
+      </button>
+      <button onclick="doLogout()"
+        style="flex:1;padding:11px;background:linear-gradient(135deg,#c62828,#d32f2f);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">
+        Logout
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Module entry point — main.js bootstraps everything -->
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
